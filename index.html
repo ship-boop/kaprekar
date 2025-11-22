@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kaprekar Process Explorer</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(to bottom right, #dbeafe, #e0e7ff);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .card {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+
+        .header {
+            text-align: center;
+        }
+
+        .header h1 {
+            color: #4f46e5;
+            font-size: 2.5rem;
+            margin-bottom: 8px;
+        }
+
+        .header p {
+            color: #6b7280;
+            font-size: 1rem;
+        }
+
+        .icon-number {
+            display: inline-block;
+            font-size: 2.5rem;
+            font-weight: bold;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+
+        .icon-number:hover {
+            animation: vibrate 0.3s linear infinite;
+        }
+
+        @keyframes vibrate {
+            0% {
+                transform: translate(0, 0) rotate(0deg);
+            }
+
+            10% {
+                transform: translate(-2px, -1px) rotate(-1deg);
+            }
+
+            20% {
+                transform: translate(2px, 1px) rotate(1deg);
+            }
+
+            30% {
+                transform: translate(-2px, 1px) rotate(0deg);
+            }
+
+            40% {
+                transform: translate(2px, -1px) rotate(1deg);
+            }
+
+            50% {
+                transform: translate(-2px, -1px) rotate(-1deg);
+            }
+
+            60% {
+                transform: translate(2px, 1px) rotate(0deg);
+            }
+
+            70% {
+                transform: translate(-2px, 1px) rotate(-1deg);
+            }
+
+            80% {
+                transform: translate(2px, -1px) rotate(1deg);
+            }
+
+            90% {
+                transform: translate(-2px, -1px) rotate(0deg);
+            }
+
+            100% {
+                transform: translate(0, 0) rotate(0deg);
+            }
+        }
+
+        .toggle-section {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .toggle-info h3 {
+            font-size: 1.25rem;
+            color: #1f2937;
+            margin-bottom: 4px;
+        }
+
+        .toggle-info p {
+            color: #6b7280;
+            font-size: 0.9rem;
+        }
+
+        .toggle-switch {
+            position: relative;
+            width: 96px;
+            height: 48px;
+            background: #d1d5db;
+            border-radius: 24px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .toggle-switch.active {
+            background: #4f46e5;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            top: 4px;
+            left: 4px;
+            width: 40px;
+            height: 40px;
+            background: white;
+            border-radius: 50%;
+            transition: transform 0.3s;
+        }
+
+        .toggle-switch.active .toggle-slider {
+            transform: translateX(48px);
+        }
+
+        .toggle-label {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 0.75rem;
+            font-weight: bold;
+        }
+
+        .toggle-label.left {
+            left: 8px;
+            color: #374151;
+        }
+
+        .toggle-label.right {
+            right: 8px;
+            color: white;
+        }
+
+        .input-section h2 {
+            font-size: 1.5rem;
+            color: #1f2937;
+            margin-bottom: 16px;
+        }
+
+        .input-row {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        input[type="number"] {
+            flex: 1;
+            padding: 12px 16px;
+            border: 2px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+
+        input[type="number"]:focus {
+            outline: none;
+            border-color: #4f46e5;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: #4f46e5;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #4338ca;
+        }
+
+        .btn-secondary {
+            background: #7c3aed;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #6d28d9;
+        }
+
+        .btn-danger {
+            background: #ef4444;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #dc2626;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-full {
+            width: 100%;
+            padding: 16px;
+            font-size: 1.25rem;
+            margin-bottom: 12px;
+        }
+
+        .numbers-list {
+            background: #f3f4f6;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            min-height: 50px;
+        }
+
+        .number-tag {
+            display: inline-block;
+            background: #e0e7ff;
+            color: #4338ca;
+            padding: 8px 16px;
+            border-radius: 20px;
+            margin: 4px;
+            font-weight: 600;
+        }
+
+        .remove-btn {
+            margin-left: 8px;
+            color: #ef4444;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .remove-btn:hover {
+            color: #dc2626;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 500px;
+            margin-top: 20px;
+        }
+
+        .result-card {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 24px;
+            margin-bottom: 16px;
+        }
+
+        .result-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .result-header h3 {
+            font-size: 1.5rem;
+            color: #1f2937;
+        }
+
+        .result-header .num-highlight {
+            color: #4f46e5;
+        }
+
+        .steps-badge {
+            background: #d1fae5;
+            color: #065f46;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: bold;
+        }
+
+        .journey-title {
+            color: #374151;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+
+        .journey-flow {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .journey-value {
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 1.125rem;
+        }
+
+        .journey-value.normal {
+            background: #eef2ff;
+            color: #4338ca;
+        }
+
+        .journey-value.final {
+            background: #10b981;
+            color: white;
+            box-shadow: 0 4px 6px rgba(16, 185, 129, 0.3);
+        }
+
+        .arrow {
+            color: #9ca3af;
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        .error-box {
+            background: #fee2e2;
+            border: 1px solid #fecaca;
+            padding: 16px;
+            border-radius: 8px;
+            color: #991b1b;
+            font-weight: 600;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="card header">
+            <h1><span class="icon-number">6174</span> Kaprekar Process Explorer</h1>
+            <p>Discover the fascinating journey of digit rearrangement!</p>
+        </div>
+
+        <!-- Toggle Mode -->
+        <div class="card">
+            <div class="toggle-section">
+                <div class="toggle-info">
+                    <h3>Input Mode</h3>
+                    <p id="modeDescription">Analyze single number instantly</p>
+                </div>
+                <div class="toggle-switch" id="toggleSwitch" onclick="toggleMode()">
+                    <div class="toggle-slider"></div>
+                    <span class="toggle-label left">Single</span>
+                    <span class="toggle-label right">Multi</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Input Section -->
+        <div class="card input-section">
+            <h2 id="inputTitle">Enter a Number</h2>
+            <div class="input-row">
+                <input type="number" id="numberInput" placeholder="Enter number (0-9999999999)" min="0"
+                    max="9999999999">
+                <button class="btn btn-primary hidden" id="addBtn" onclick="addNumber()">➕ Add</button>
+                <button class="btn btn-secondary" id="runSingleBtn" onclick="runAnalysis()">▶ Run</button>
+            </div>
+
+            <div id="numbersListContainer" class="hidden">
+                <div class="numbers-list" id="numbersList"></div>
+            </div>
+
+            <button class="btn btn-primary btn-full hidden" id="runMultiBtn" onclick="runAnalysis()">▶ Run
+                Analysis</button>
+            <button class="btn btn-danger btn-full hidden" id="clearBtn" onclick="clearAll()">🔄 Clear All & Start
+                Over</button>
+        </div>
+
+        <!-- Results Section -->
+        <div id="resultsContainer"></div>
+    </div>
+
+    <script>
+        let isMultipleMode = false;
+        let numbers = [];
+        let currentChart = null;
+
+        function kaprekarJourney(num) {
+            const numStr = String(num);
+            const numDigits = numStr.length;
+
+            const paddedStr = numStr.padStart(numDigits, '0');
+            if (new Set(paddedStr).size === 1) {
+                return null;
+            }
+
+            const journey = [num];
+            let current = num;
+            let iterations = 0;
+
+            while (iterations < 20) {
+                const currentStr = String(current).padStart(numDigits, '0');
+                const ascending = parseInt(currentStr.split('').sort().join(''));
+                const descending = parseInt(currentStr.split('').sort().reverse().join(''));
+                current = descending - ascending;
+                journey.push(current);
+
+                if (journey.length > 1 && journey.slice(0, -1).includes(current)) {
+                    journey.pop();
+                    break;
+                }
+
+                iterations++;
+            }
+
+            return journey;
+        }
+
+        function toggleMode() {
+            isMultipleMode = !isMultipleMode;
+            const toggleSwitch = document.getElementById('toggleSwitch');
+            const modeDescription = document.getElementById('modeDescription');
+            const inputTitle = document.getElementById('inputTitle');
+            const addBtn = document.getElementById('addBtn');
+            const runSingleBtn = document.getElementById('runSingleBtn');
+            const numbersListContainer = document.getElementById('numbersListContainer');
+            const runMultiBtn = document.getElementById('runMultiBtn');
+            const clearBtn = document.getElementById('clearBtn');
+
+            if (isMultipleMode) {
+                toggleSwitch.classList.add('active');
+                modeDescription.textContent = 'Add multiple numbers and analyze together';
+                inputTitle.textContent = 'Enter Multiple Numbers';
+                addBtn.classList.remove('hidden');
+                runSingleBtn.classList.add('hidden');
+                numbersListContainer.classList.remove('hidden');
+                runMultiBtn.classList.remove('hidden');
+                clearBtn.classList.remove('hidden');
+            } else {
+                toggleSwitch.classList.remove('active');
+                modeDescription.textContent = 'Analyze single number instantly';
+                inputTitle.textContent = 'Enter a Number';
+                addBtn.classList.add('hidden');
+                runSingleBtn.classList.remove('hidden');
+                numbersListContainer.classList.add('hidden');
+                runMultiBtn.classList.add('hidden');
+                clearBtn.classList.add('hidden');
+            }
+
+            clearAll();
+        }
+
+        function addNumber() {
+            const input = document.getElementById('numberInput');
+            const num = parseInt(input.value);
+
+            if (isNaN(num) || num < 0 || num > 9999999999) {
+                alert('Please enter a valid number between 0 and 9,999,999,999');
+                return;
+            }
+
+            if (numbers.includes(num)) {
+                alert('Number already added');
+                return;
+            }
+
+            numbers.push(num);
+            updateNumbersList();
+            input.value = '';
+        }
+
+        function updateNumbersList() {
+            const numbersList = document.getElementById('numbersList');
+            numbersList.innerHTML = numbers.map((num, index) =>
+                `<span class="number-tag">${num}<span class="remove-btn" onclick="removeNumber(${index})">✕</span></span>`
+            ).join('');
+        }
+
+        function removeNumber(index) {
+            numbers.splice(index, 1);
+            updateNumbersList();
+        }
+
+        function clearAll() {
+            numbers = [];
+            document.getElementById('numberInput').value = '';
+            document.getElementById('numbersList').innerHTML = '';
+            document.getElementById('resultsContainer').innerHTML = '';
+            if (currentChart) {
+                currentChart.destroy();
+                currentChart = null;
+            }
+        }
+
+        function runAnalysis() {
+            const resultsContainer = document.getElementById('resultsContainer');
+            resultsContainer.innerHTML = '';
+
+            if (currentChart) {
+                currentChart.destroy();
+                currentChart = null;
+            }
+
+            let numbersToAnalyze;
+            if (isMultipleMode) {
+                if (numbers.length === 0) {
+                    alert('Please add at least one number');
+                    return;
+                }
+                numbersToAnalyze = numbers;
+            } else {
+                const input = document.getElementById('numberInput');
+                const num = parseInt(input.value);
+                if (isNaN(num) || num < 0 || num > 9999999999) {
+                    alert('Please enter a valid number');
+                    return;
+                }
+                numbersToAnalyze = [num];
+                input.value = '';
+            }
+
+            const results = [];
+            numbersToAnalyze.forEach(num => {
+                const journey = kaprekarJourney(num);
+                if (journey) {
+                    results.push({ num, journey, iterations: journey.length });
+                } else {
+                    results.push({ num, journey: null, iterations: -1 });
+                }
+            });
+
+            // Display graph for multiple mode
+            if (isMultipleMode && results.filter(r => r.journey).length > 0) {
+                displayGraph(results);
+            }
+
+            // Display results
+            displayResults(results);
+        }
+
+        function displayGraph(results) {
+            const validResults = results.filter(r => r.journey);
+            if (validResults.length === 0) return;
+
+            const graphCard = document.createElement('div');
+            graphCard.className = 'card';
+            graphCard.innerHTML = '<h2 style="margin-bottom: 16px;">Journey Visualization</h2><div class="chart-container"><canvas id="journeyChart"></canvas></div>';
+            document.getElementById('resultsContainer').appendChild(graphCard);
+
+            const maxLength = Math.max(...validResults.map(r => r.journey.length));
+            const chartData = [];
+
+            for (let i = 0; i < maxLength; i++) {
+                const dataPoint = { iteration: i };
+                validResults.forEach(({ num, journey }) => {
+                    if (i < journey.length) {
+                        dataPoint[`num_${num}`] = journey[i];
+                    }
+                });
+                chartData.push(dataPoint);
+            }
+
+            const datasets = validResults.map(({ num }, index) => {
+                const colors = ['#3b82f6', '#ef4444', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#14b8a6', '#f97316', '#06b6d4', '#84cc16'];
+                return {
+                    label: `Start: ${num}`,
+                    data: chartData.map(d => d[`num_${num}`]),
+                    borderColor: colors[index % colors.length],
+                    backgroundColor: colors[index % colors.length],
+                    tension: 0.1,
+                    pointRadius: 4
+                };
+            });
+
+            const ctx = document.getElementById('journeyChart').getContext('2d');
+            currentChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: chartData.map(d => d.iteration),
+                    datasets: datasets
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    indexAxis: 'y',
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Number Value',
+                                font: { size: 14, weight: 'bold' }
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'Steps in Journey',
+                                font: { size: 14, weight: 'bold' }
+                            },
+                            beginAtZero: true,
+                            reverse: true
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top'
+                        }
+                    }
+                }
+            });
+        }
+
+        function displayResults(results) {
+            results.forEach(result => {
+                const card = document.createElement('div');
+                card.className = 'result-card';
+
+                const header = document.createElement('div');
+                header.className = 'result-header';
+                header.innerHTML = `
+                    <h3>Starting Number: <span class="num-highlight">${result.num}</span></h3>
+                    ${result.iterations >= 0 ? `<span class="steps-badge">${result.iterations} step${result.iterations !== 1 ? 's' : ''}</span>` : ''}
+                `;
+                card.appendChild(header);
+
+                if (result.journey) {
+                    const journeySection = document.createElement('div');
+                    journeySection.innerHTML = '<p class="journey-title">Journey through Kaprekar Process:</p>';
+
+                    const journeyFlow = document.createElement('div');
+                    journeyFlow.className = 'journey-flow';
+
+                    result.journey.forEach((value, idx) => {
+                        const valueEl = document.createElement('div');
+                        valueEl.className = `journey-value ${idx === result.journey.length - 1 ? 'final' : 'normal'}`;
+                        valueEl.textContent = value;
+                        journeyFlow.appendChild(valueEl);
+
+                        if (idx < result.journey.length - 1) {
+                            const arrow = document.createElement('span');
+                            arrow.className = 'arrow';
+                            arrow.textContent = '→';
+                            journeyFlow.appendChild(arrow);
+                        }
+                    });
+
+                    journeySection.appendChild(journeyFlow);
+                    card.appendChild(journeySection);
+                } else {
+                    const errorBox = document.createElement('div');
+                    errorBox.className = 'error-box';
+                    errorBox.textContent = '❌ Cannot process (all digits are the same)';
+                    card.appendChild(errorBox);
+                }
+
+                document.getElementById('resultsContainer').appendChild(card);
+            });
+        }
+
+        // Enter key handler
+        document.getElementById('numberInput').addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') {
+                if (isMultipleMode) {
+                    addNumber();
+                } else {
+                    runAnalysis();
+                }
+            }
+        });
+    </script>
+</body>
+
+</html>
